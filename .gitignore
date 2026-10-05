@@ -1,0 +1,26 @@
+# Node / Frontend Dependencies
+node_modules/
+frontend/node_modules/
+.npm
+npm-debug.log*
+
+# Python cache & virtual environments
+__pycache__/
+backend/**/__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+
+# Environment files
+.env
+.env.local
+
+# IDE & OS files
+.vscode/
+.idea/
+Thumbs.db
+.DS_Store
