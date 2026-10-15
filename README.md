@@ -1,256 +1,315 @@
-# AI-Powered HR Recruitment & Candidate Screening System
+# HR Recruitment & Candidate Screening System (TalentPulse AI)
 
-A modern, full-stack Applicant Tracking System (ATS) and candidate screening prototype built for academic demonstration and technical recruitment operations. The system automates resume parsing, candidate scoring, qualification ranking, and recruiter shortlisting using mathematical decision rules and algorithmic ranking.
-
----
-
-## 1. Project Overview
-
-Manual resume screening for technical job openings is time-consuming, prone to human fatigue, and inconsistent across candidates. **TalentPulse AI** provides HR teams with an automated pipeline to ingest candidate resumes (PDF or TXT), parse skills and qualifications, compute an objective **AI Fit Score (0–100%)**, evaluate eligibility, highlight missing competencies, and prioritize candidates for interview shortlisting.
+A complete, interactive, presentation-ready web application prototype built for a college team project / viva evaluation. The system automates resume ingestion, checks eligibility using deterministic rules, calculates explainable job-fit scores, priority-ranks candidates, and provides recruiters with ethical, transparent decision-support.
 
 ---
 
-## 2. Problem Statement
+## 1. Project Objective & Problem Statement
 
-An HR department faces hundreds of resumes per job opening. Reading every resume manually causes:
-- Recruitment delays and pipeline bottlenecks.
-- Subjective filtering variations among different screeners.
+Human Resource (HR) departments manually evaluate hundreds of resumes per job opening. This manual process causes:
+- Fatigue, human bias, and severe pipeline bottlenecks.
+- Subjective inconsistencies between different screeners.
 - Qualified applicants being missed due to overlooked resume sections.
 
-**Solution:** An automated screening engine that ingests job descriptions, computes weighted multi-criteria compatibility scores, enforces categorical eligibility thresholds, and presents candidates in an interactive dashboard.
+**TalentPulse AI** provides an explainable decision-support system that:
+1. Ingests candidate resumes (PDF or TXT) or structured input.
+2. Applies deterministic eligibility rules (minimum education, minimum experience, mandatory skills).
+3. Calculates a normalized job-fit score (0–100%) using configurable weights (Skills 50%, Experience 30%, Education 20%).
+4. Ranks candidates from highest to lowest fit score.
+5. Provides a full explanation of every score, highlighting matched and missing skills.
+6. Safeguards candidates by strictly excluding demographic data (gender, religion, caste, age, disability, photos) and allowing recruiters to override recommendations with a recorded reason.
 
 ---
 
-## 3. Key Features
+## 2. Technology Stack & Architecture
 
-- **Recruiter KPI Dashboard:**
-  - Real-time statistics: Total Jobs, Total Candidates, Eligible Applicants, Shortlisted Counts, and Average Fit Score.
-  - Interactive distribution charts and popular job openings.
-- **Job Management:**
-  - Create, view, update, and delete technical job openings.
-  - Specify required skills (50% weight), preferred skills (10%), minimum experience, and degree requirements.
-- **Candidate Pool & AI Ranking:**
-  - Dynamically sorted candidate table with ranks (`#1`, `#2`, `#3`...).
-  - Multi-criteria filtering by Job, Minimum Fit Score, Eligibility tier, Experience, and Application Status.
-  - One-click recruiter actions: **Shortlist**, **Reject**, and **Schedule Interview**.
-- **Candidate Profile & Explainability:**
-  - Visual circular/gauge score indicator (`86 / 100`).
-  - Breakdown bars: Skills (50%), Experience (20%), Education (15%), Preferred (10%), Keywords (5%).
-  - Highlighted **Missing Required Skills** tags (e.g., `✕ FastAPI`).
-  - Plain-English screening rationale explaining why an applicant was accepted or rejected.
-- **Interactive Resume Screener:**
-  - Upload PDF resumes (via PyPDF) or plain TXT files.
-  - Heuristic entity extraction for candidate name, email, phone, education, experience, and verified technical skills.
-  - Instant scoring against any selected job opening with 1-click database synchronization.
-- **Recruitment Analytics:**
-  - Score distribution histogram, eligibility ratios, applicant volume per opening, and status funnel conversion rates.
-- **Interactive Demo Mode:**
-  - One-click "Run Demo Screening" button executing the default **AI/ML Intern** scenario across 5 benchmark profiles.
-  - One-click database reset and sample data seeder.
+```
++-----------------------------------------------------------------------------------+
+|                            PRESENTATION LAYER (Frontend)                          |
+|  React 18 + Vite | Tailwind CSS | Lucide React Icons | Recharts Visualizations    |
+|  Dual-Mode Resilience: Online (FastAPI) + Offline (LocalStorage Fallback)         |
++-----------------------------------------------------------------------------------+
+                                          |
+                                   REST APIs (JSON)
+                                          |
++-----------------------------------------------------------------------------------+
+|                             BACKEND API LAYER (FastAPI)                           |
+|  FastAPI (Python 3.10+) | Uvicorn | Pydantic V2 Models | CORS Middleware          |
++-----------------------------------------------------------------------------------+
+             |                                                |
++-------------------------------------+      +--------------------------------------+
+|       ALGORITHMIC SCREENING ENGINE  |      |      B-TREE INDEXING ENGINE          |
+|  • DMGT Set Theory for Skills       |      |  • Academic Order m=3 Balanced Tree  |
+|  • ADSA Weighted Linear Combination |      |  • O(log_m N) vs O(N) Benchmark      |
+|  • Deterministic Eligibility Logic  |      |  • Live Visualizer & Step Tracer     |
++-------------------------------------+      +--------------------------------------+
+                                          |
++-----------------------------------------------------------------------------------+
+|                             DATABASE LAYER (SQLite 3)                             |
+|  SQLAlchemy ORM | Foreign Keys with Cascades | 3NF Schema Design                  |
+|  Tables: jobs, candidates, applications, screening_results, recruiter_notes       |
++-----------------------------------------------------------------------------------+
+```
 
----
-
-## 4. Technology Stack
-
-| Layer | Technologies Used |
-| :--- | :--- |
-| **Frontend** | React 18, Vite 5, Tailwind CSS, Lucide Icons |
-| **Backend** | Python 3.13, FastAPI, Uvicorn, Pydantic |
-| **Database** | SQLite, SQLAlchemy ORM |
-| **Document Processing** | PyPDF, Regular Expressions (Regex), NLP Normalization |
-| **Architecture** | REST API Architecture with JSON Serialization |
+- **Frontend:** React with Vite, JavaScript (JSX), Tailwind CSS, Lucide React icons, Recharts.
+- **Backend:** Python with FastAPI, Uvicorn, SQLAlchemy ORM.
+- **Database:** SQLite 3 with composite indexing.
+- **B-Tree Demonstration:** Custom Python B-Tree (Order $m=3$) written by our team to demonstrate $O(\log_m N)$ logarithmic search versus $O(N)$ linear scans in the UI. *(Academic disclaimer: SQLite's internal storage engine uses a separate, native C-implemented B-tree).*
+- **Dual-Mode Offline Resilience:** If the Python FastAPI backend is not running, the frontend automatically falls back to an in-browser local storage mock with pre-seeded data, ensuring zero downtime during college evaluations.
 
 ---
 
-## 5. College Curriculum & Theoretical Foundations
+## 3. Database Design (3NF Relational Model)
 
-This prototype directly illustrates six fundamental computer science domains:
+The database schema is organized in Third Normal Form (3NF) across 4 core tables:
 
-### 1. DBMS (Database Management Systems)
-- **Relational ER Model:** Three primary entities: `JOBS`, `CANDIDATES`, and `APPLICATIONS`.
-- **Relational Integrity:** Implemented with foreign keys (`candidate_id`, `job_id`) and cascading deletes (`ondelete="CASCADE"`).
-- **SQLite Persistence:** Zero-configuration relational database engine adhering to ACID guarantees.
+1. **`jobs` Table:**
+   - `job_id` (INTEGER, Primary Key, Auto-increment)
+   - `title` (VARCHAR 150) — *e.g., Junior Python Developer, Frontend Developer, Data Analyst*
+   - `department` (VARCHAR 100)
+   - `description` (TEXT)
+   - `required_skills` (TEXT) — Comma-separated mandatory skills
+   - `preferred_skills` (TEXT) — Comma-separated secondary skills
+   - `minimum_experience` (FLOAT) — Minimum years required
+   - `education_requirement` (VARCHAR 150) — Degree threshold
+   - `skill_weight` (FLOAT, Default 0.50) — Configurable weight (0.0 to 1.0)
+   - `experience_weight` (FLOAT, Default 0.30) — Configurable weight (0.0 to 1.0)
+   - `education_weight` (FLOAT, Default 0.20) — Configurable weight (0.0 to 1.0)
+   - `status` (VARCHAR 50) — 'Active', 'Draft', 'Closed'
+   - `created_at` (DATETIME)
 
-### 2. SQL (Structured Query Language)
-- **Aggregation Queries:** `func.avg(Application.fit_score)`, `func.count(Application.application_id)`, and `func.coalesce()` to calculate applicant counts and mean fit scores per job.
-- **Multi-Table Joins:** `JOIN Application ON Candidate` and `JOIN Application ON Job` to merge candidate profiles, scores, and job metadata in a single indexed query.
-- **Filtering & Predicates:** Pattern matching (`ilike`), threshold ranges (`fit_score >= min_score`), and conditional status filters.
+2. **`candidates` Table:**
+   - `candidate_id` (INTEGER, Primary Key, Auto-increment)
+   - `name` (VARCHAR 150)
+   - `email` (VARCHAR 150, Unique, Indexed)
+   - `phone` (VARCHAR 50)
+   - `education` (VARCHAR 150)
+   - `experience` (FLOAT)
+   - `skills` (TEXT)
+   - `resume_text` (TEXT)
+   - `created_at` (DATETIME)
 
-### 3. DMGT (Discrete Mathematics & Graph Theory)
-- **Set Theory:**
-  - $\text{Matched Skills} = \text{Candidate Skills} \cap \text{Required Skills}$
-  - $\text{Missing Skills} = \text{Required Skills} \setminus \text{Candidate Skills}$
-- **Degree Lattice:** Poset (Partially Ordered Set) hierarchy for evaluating educational degrees (PhD > MTech/MCA > BTech/BE > Diploma).
-- **Boolean Decision Rules:** Predicate logic evaluating eligibility:
-  $$\text{Eligible} \iff (\text{Fit Score} \ge 75) \land (\text{Skills Score} \ge 50)$$
-  $$\text{Review} \iff 50 \le \text{Fit Score} < 75$$
-  $$\text{Not Eligible} \iff \text{Fit Score} < 50$$
-
-### 4. ADSA (Advanced Data Structures & Algorithms)
-- **Composite B-Tree Indexes:** Database indexes on `(job_id, fit_score DESC)` for high-throughput rank querying.
-- **Priority Ranking:** Sorting and rank numbering $O(N \log N)$ to prioritize top applicants.
-- **Weighted Multi-Attribute Scoring:** Linear combination algorithm normalizing sub-scores into an objective 0–100 index.
-
-### 5. OOP (Object-Oriented Programming)
-- Modular encapsulation across classes:
-  - `Job`: Data model for opening specifications.
-  - `Candidate`: Data model for applicant records.
-  - `Application`: Association entity linking candidates and jobs.
-  - `ScreeningEngine`: Encapsulated scoring logic, sub-score calculators, and decision rules.
-  - `ResumeParser`: Text extraction and heuristic entity detection.
-
-### 6. Python
-- Modern async FastAPI web server, Pydantic type validation, and robust regex-based NLP normalization.
-
----
-
-## 6. Database Schema Design
-
-### `JOBS` Table
-- `job_id` (INTEGER, Primary Key, Auto-increment)
-- `title` (VARCHAR 150)
-- `department` (VARCHAR 100)
-- `description` (TEXT)
-- `required_skills` (TEXT)
-- `preferred_skills` (TEXT)
-- `minimum_experience` (FLOAT)
-- `education_requirement` (VARCHAR 150)
-- `status` (VARCHAR 50) — 'Active', 'Draft', 'Closed'
-- `created_at` (DATETIME)
-
-### `CANDIDATES` Table
-- `candidate_id` (INTEGER, Primary Key, Auto-increment)
-- `name` (VARCHAR 150)
-- `email` (VARCHAR 150, Unique, Indexed)
-- `phone` (VARCHAR 50)
-- `education` (VARCHAR 150)
-- `experience` (FLOAT)
-- `skills` (TEXT)
-- `resume_text` (TEXT)
-- `created_at` (DATETIME)
-
-### `APPLICATIONS` Table
-- `application_id` (INTEGER, Primary Key, Auto-increment)
-- `candidate_id` (INTEGER, Foreign Key -> `candidates.candidate_id`)
-- `job_id` (INTEGER, Foreign Key -> `jobs.job_id`)
-- `fit_score` (FLOAT, Indexed)
-- `skills_score` (FLOAT)
-- `experience_score` (FLOAT)
-- `education_score` (FLOAT)
-- `preferred_skills_score` (FLOAT)
-- `keyword_score` (FLOAT)
-- `eligibility` (VARCHAR 50) — 'Eligible', 'Review', 'Not Eligible'
-- `status` (VARCHAR 50) — 'Screened', 'Shortlisted', 'Rejected', 'Interview'
-- `missing_skills` (TEXT)
-- `reason` (TEXT)
-- `applied_at` (DATETIME)
+3. **`applications` Table:**
+   - `application_id` (INTEGER, Primary Key, Auto-increment)
+   - `candidate_id` (INTEGER, Foreign Key -> `candidates.candidate_id` ON DELETE CASCADE)
+   - `job_id` (INTEGER, Foreign Key -> `jobs.job_id` ON DELETE CASCADE)
+   - `fit_score` (FLOAT, Indexed) — Overall score (0.0–100.0)
+   - `skills_score` (FLOAT) — Skill match percentage
+   - `experience_score` (FLOAT) — Experience score percentage
+   - `education_score` (FLOAT) — Education score percentage
+   - `preferred_skills_score` (FLOAT)
+   - `keyword_score` (FLOAT)
+   - `eligibility` (VARCHAR 50) — 'Eligible', 'Review', 'Not Eligible'
+   - `status` (VARCHAR 50) — 'Screened', 'Shortlisted', 'Rejected', 'Interview'
+   - `missing_skills` (TEXT) — JSON or comma-separated missing mandatory skills
+   - `reason` (TEXT) — Plain-English explanation of decision
+   - `recruiter_notes` (TEXT) — Persistent recruiter notes
+   - `override_reason` (TEXT) — Recorded justification for manual overrides
+   - `applied_at` (DATETIME)
 
 ---
 
-## 7. How Candidate Scoring Works
+## 4. 5-Step Deterministic Screening Workflow
 
-The `ScreeningEngine` computes a composite **AI Fit Score** between `0.0` and `100.0` based on 5 weighted pillars:
+Our screening workflow follows 5 transparent mathematical steps:
 
-$$\text{Fit Score} = 0.50 \cdot S_{\text{skills}} + 0.20 \cdot S_{\text{exp}} + 0.15 \cdot S_{\text{edu}} + 0.10 \cdot S_{\text{pref}} + 0.05 \cdot S_{\text{kw}}$$
+```
+[Resume / Profile] 
+       │
+       ▼
+[Step 1: Apply Configurable Rules] ──► Checks min education, min experience & mandatory skills
+       │
+       ▼
+[Step 2: Assign Eligibility Status] ──► Classified as: "Eligible", "Needs Review", or "Not Eligible"
+       │
+       ▼
+[Step 3: Calculate Job-Fit Score] ──► Fit Score = (W_skill × SkillScore) + (W_exp × ExpScore) + (W_edu × EduScore)
+       │                              Default weights: 50% Skills, 30% Experience, 20% Education (Normalized)
+       ▼
+[Step 4: Rank Eligible Candidates] ──► Priority sort applicants from highest to lowest fit score
+       │
+       ▼
+[Step 5: Explain Decision & Audit] ──► Display matched skills, missing skills, breakdown & recruiter override
+```
 
-1. **Skills Match ($50\%$ Weight):**
-   - Compares candidate's skills against mandatory job skills using set intersection.
-   - Calculates percentage: $(|C \cap R| / |R|) \times 100$.
-2. **Experience Alignment ($20\%$ Weight):**
-   - Compares candidate years against job requirement ratio.
-   - If requirement is $0$ years, any applicant receives $100\%$.
-3. **Education Compatibility ($15\%$ Weight):**
-   - Matches candidate degree level against the requirement lattice (PhD > Master/MCA > Bachelor/BTech).
-4. **Preferred Skills ($10\%$ Weight):**
-   - Bonus points for secondary skills (e.g., Git, Pandas, Docker).
-5. **Resume Keyword Relevance ($5\%$ Weight):**
-   - Lexical frequency check of job description terms and domain keywords in resume text.
+### Ethical Screening Safeguards:
+- **Zero Demographic Bias:** Protected personal attributes (gender, age, religion, caste, marital status, disability, photographs) are strictly excluded from parsing and ranking algorithms.
+- **Decision-Support Estimates:** Scores are explicitly presented as decision-support aids—never as objective measures of human worth.
+- **Human-in-the-Loop Override:** Recruiters can manually change any automated status (Shortlist, Needs Review, Not Selected) and record an audit justification in the database.
 
 ---
 
-## 8. Installation & Setup
+## 5. Main Application Pages
+
+1. **Dashboard:**
+   - 5 Top KPI Cards: Total Candidates, Eligible Candidates, Candidates Shortlisted, **Needs Manual Review**, and Average Job-Fit Score.
+   - **Candidate Pipeline Funnel Chart** (built with Recharts).
+   - **Candidate Skills Distribution Chart** (built with Recharts).
+   - Quick actions to "Add Candidate" and "Run Screening".
+   - Recent candidate activity stream with live status badges.
+
+2. **Job Openings:**
+   - View, create, and edit technical job openings.
+   - Sample jobs pre-seeded: **Junior Python Developer**, **Frontend Developer**, **Data Analyst**, **AI/ML Intern**, etc.
+   - Configure required skills, preferred skills, minimum education, minimum experience, and 50/30/20% scoring weights with auto-normalization.
+
+3. **Candidate Management:**
+   - Searchable, filterable candidate table with:
+     - Candidate ID (`#CAND-001`)
+     - Name and contact email/phone
+     - Applied job opening
+     - Skills chips
+     - Education & experience
+     - AI Fit Score & Eligibility status
+     - Application status (Shortlisted, Needs Review, Rejected, Interview)
+   - Pagination controls (with selectable page size: 5, 8, 15, 25).
+   - Modal actions for **Add Candidate**, **Edit Candidate**, and **Delete Candidate** (with confirmation).
+
+4. **Interactive Smart Screening:**
+   - 5-step visual workflow indicator.
+   - Upload PDF/TXT resumes or select 1-click sample candidates (Strong Match, Review Needed, Not Eligible).
+   - Real-time scoring breakdown, matched technical skills, missing mandatory skills, and explainable rationale.
+   - Recruiter decision buttons (Shortlist, Needs Review, Not Selected) with recorded notes and manual override reason.
+
+5. **Candidate Details Profile Modal:**
+   - Full contact details, education, and experience.
+   - Gauge fit score indicator and sub-component breakdown.
+   - Recruitment audit timeline.
+   - Persistent recruiter notes and manual decision override dialog.
+
+6. **Technical Insights (Viva Demonstration Page):**
+   - **Full Architecture Diagram:** React (Vite) $\to$ REST API (FastAPI) $\to$ SQLite (SQLAlchemy) + Python Screening.
+   - **Interactive B-Tree Index Demonstrator:** Live search on an Order $m=3$ B-Tree comparing $O(\log_m N)$ tree lookups against $O(N)$ linear scans, showing traversal paths and tree node keys.
+   - **DBMS 3NF Schema & ER Model:** Interactive ER visualizer showing primary/foreign key relationships.
+   - **Live SQL Query Playground:** Pre-built SQL queries (eligible candidates, average scores by job, missing skills filter) with a live query executor.
+   - **Screening Rules & OOP Concepts:** Explanation of classes, set theory intersections, and mathematical formulas for college faculty evaluation.
+
+---
+
+## 6. Installation & Setup Instructions
 
 ### Prerequisites
-- Python 3.10+ installed
-- Node.js installed
+- Python 3.10 or higher
+- Node.js (v18+) and npm
 
-### Quick Start (One-Click)
-Run the launcher batch file in the project root:
-```bash
+### Method 1: Automatic One-Click Launch (Windows)
+Double-click the batch file in the project root:
+```cmd
 start_full_app.bat
 ```
-This automatically launches both the FastAPI backend (`http://localhost:8000`) and the React Vite frontend (`http://localhost:5173`).
+This starts both the FastAPI backend on port 8000 and the React Vite dev server on port 5173.
 
 ---
 
-### Running Manually
+### Method 2: Manual Step-by-Step Startup
 
-#### Step 1: Start Backend
+#### Step 1: Start the FastAPI Backend
+Open a terminal in the project directory:
 ```bash
+# Navigate to backend directory
 cd backend
+
+# Install Python dependencies (if not already installed)
+pip install fastapi uvicorn sqlalchemy pydantic pypdf python-multipart
+
+# Seed demo database (8 job openings, 16 candidate applications)
+python seed_data.py
+
+# Launch FastAPI development server
 python -m uvicorn main:app --host 127.0.0.1 --port 8000 --reload
 ```
-- API will be accessible at: `http://127.0.0.1:8000`
-- Interactive Swagger API docs: `http://127.0.0.1:8000/docs`
+- **Backend API:** `http://127.0.0.1:8000`
+- **Interactive Swagger Documentation:** `http://127.0.0.1:8000/docs`
 
-#### Step 2: Start Frontend
+#### Step 2: Start the React Frontend
+Open a second terminal:
 ```bash
+# Navigate to frontend directory
 cd frontend
+
+# Install dependencies (if not already installed)
+npm install
+
+# Start Vite development server
 npm run dev
 ```
-- Frontend will open at: `http://localhost:5173`
+- **Frontend URL:** `http://localhost:5173`
 
 ---
 
-## 9. API Endpoints Reference
+## 7. API Endpoints Reference
 
 | Method | Endpoint | Description |
 | :--- | :--- | :--- |
-| `GET` | `/jobs` | Get all job openings with applicant count & average fit score |
-| `POST` | `/jobs` | Create a new job opening |
-| `GET` | `/jobs/{id}` | Get specific job opening details |
-| `PUT` | `/jobs/{id}` | Update job specifications |
-| `DELETE` | `/jobs/{id}` | Delete job opening |
-| `GET` | `/candidates` | Search and filter candidates by skill, experience, or query |
-| `POST` | `/candidates` | Add a candidate manually |
-| `GET` | `/candidates/{id}` | Retrieve candidate profile and application history |
-| `POST` | `/upload-resume` | Upload PDF/TXT resume and extract entities |
-| `POST` | `/screen-candidate` | Screen a candidate against a job and compute fit score |
-| `GET` | `/applications` | Get ranked applications with sorting & filtering |
-| `POST` | `/applications/{id}/shortlist` | Mark application as Shortlisted |
-| `POST` | `/applications/{id}/reject` | Mark application as Rejected |
-| `POST` | `/applications/{id}/interview` | Schedule interview for application |
-| `GET` | `/analytics` | Retrieve KPI telemetry and chart distributions |
-| `POST` | `/demo/run-screening` | Execute default demo screening scenario |
-| `POST` | `/demo/reset` | Reset and re-seed database with clean sample records |
+| `GET` | `/api/dashboard` | Aggregated dashboard KPI counts, pipeline chart, and top skills |
+| `GET` | `/jobs` | Get all job openings with applicant counts and average scores |
+| `POST` | `/jobs` | Create a new job opening with configurable weights |
+| `GET` | `/jobs/{id}` | Get details of a specific job |
+| `PUT` | `/jobs/{id}` | Update job description, requirements, or weights |
+| `DELETE` | `/jobs/{id}` | Delete job opening and associated applications |
+| `GET` | `/candidates` | Search and filter candidates |
+| `POST` | `/candidates` | Add a new candidate record |
+| `GET` | `/candidates/{id}` | Get candidate profile, scores, and application history |
+| `PUT` | `/candidates/{id}` | Update candidate information |
+| `DELETE` | `/candidates/{id}` | Delete a candidate from the database |
+| `POST` | `/upload-resume` | Upload PDF/TXT resume and parse extracted text |
+| `POST` | `/screen-candidate` | Execute deterministic screening and save application |
+| `GET` | `/applications` | Filter, search, and sort candidate applications |
+| `POST` | `/applications/{id}/status` | Update status, recruiter notes, and manual override reason |
+| `POST` | `/applications/{id}/notes` | Update recruiter notes on an application |
+| `GET` | `/api/btree/index` | Retrieve current academic B-Tree index structure |
+| `POST` | `/api/btree/search` | Search candidate ID in B-Tree with traversal trace |
+| `GET` | `/api/skills/distribution` | Technical skill distribution across applicants |
+| `POST` | `/demo/run-screening` | Run default demo screening scenario |
+| `POST` | `/demo/reset` | Reset database to clean 8 jobs and 16 candidates |
 
 ---
 
-## 10. Demo Walkthrough (College Presentation Guide)
+## 8. College Presentation & Viva Walkthrough Steps
 
-1. **Dashboard Overview:**
-   - Show the 5 KPI cards at the top (Total Jobs: 8+, Candidates: 16+, Eligible, Shortlisted, Avg Match).
-   - Point out the **Featured Demonstration Scenario** banner.
-2. **Execute Demo Screening:**
-   - Click the **"Run Demo Screening"** button in the sidebar or header.
-   - The interactive modal will pop up displaying the evaluated candidates for the **"AI/ML Intern"** opening:
-     - **Candidate A (Rahul Sharma):** Python, ML, SQL, Pandas, Git $\to$ **~92%** (**Eligible - Shortlist**)
-     - **Candidate E (Sneha Patil):** Python, ML, SQL, NumPy $\to$ **~88%** (**Eligible - Shortlist**)
-     - **Candidate B (Priya Nair):** Python, SQL $\to$ **~76%** (**Eligible**)
-     - **Candidate C (Kiran Verma):** Python, JavaScript $\to$ **~58%** (**Review**)
-     - **Candidate D (Arjun Mehta):** Java, HTML, CSS $\to$ **~32%** (**Not Eligible - Rejected**)
-3. **Candidate Pool & Dynamic Ranking:**
-   - Switch to the **Candidates** tab.
-   - Demonstrate sorting by Fit Score, Experience, and Application Date.
-   - Demonstrate filtering by Minimum Fit Score (e.g., $\ge 75\%$) and Eligibility (Eligible only).
-4. **Candidate Profile Inspection:**
-   - Click **"View"** on Rahul Sharma or Sneha Patil.
-   - Showcase the circular **AI Fit Score indicator**, the individual score breakdown bars, and the explainable rationale.
-   - Click **"Shortlist Candidate"** or **"Schedule Interview"** to observe instant status transition.
-5. **Interactive Resume Screening:**
-   - Switch to the **Resume Screener** tab.
-   - Click one of the quick sample buttons (e.g. *Sample C: Low Match (Arjun)*).
-   - Click **"Analyze & Screen Candidate"**.
-   - Watch the engine immediately calculate a low score (~32%), classify as **Not Eligible**, and flag the missing mandatory skills (`Python`, `Machine Learning`, `SQL`).
-6. **Analytics & Metrics:**
-   - Switch to **Analytics** to view the Fit Score distribution histogram, eligibility donut chart, and applicant counts.
+Follow these steps for a live demonstration to a professor or evaluation panel:
+
+1. **Dashboard Telemetry:**
+   - Open `http://localhost:5173`.
+   - Point out the 5 KPI cards: Total Candidates (16), Eligible (10), Shortlisted (6), **Needs Manual Review (4)**, and Average Fit Score (~74.8%).
+   - Highlight the **Recharts Candidate Pipeline Funnel** and **Skills Distribution** charts.
+   - Show the quick action buttons: "Add Candidate" and "Run Screening".
+
+2. **Job Openings Management:**
+   - Navigate to the **Job Openings** tab.
+   - Show the pre-seeded openings: **Junior Python Developer**, **Frontend Developer**, **Data Analyst**, and **AI/ML Intern**.
+   - Click "Create Job Opening" or edit an existing job to showcase configurable 50/30/20% scoring weights and required/preferred skills.
+
+3. **Candidate Management & CRUD Operations:**
+   - Navigate to the **Candidates & Ranking** tab.
+   - Demonstrate the search bar (filter by "Python", "React", or "SQL").
+   - Filter by Minimum Score ($\ge 75\%$) to isolate top performers.
+   - Demonstrate **Pagination** (switch page sizes between 5, 8, 15).
+   - Click **"Add Candidate"** to show the validated form.
+   - Click **"Edit"** on a candidate to modify details.
+   - Show candidate deletion with confirmation.
+
+4. **Deterministic Smart Screening Walkthrough:**
+   - Navigate to the **Resume Screener** tab.
+   - Review the 5-step screening diagram and ethical AI compliance banner.
+   - Select the **"AI/ML Intern"** opening.
+   - Click **"Sample 1: Strong Match (Rahul)"** $\to$ Click "Run Screening".
+     - Notice: Fit score **~92%**, Status: **Eligible**, Matched skills highlighted in green, Recommended Action: **SHORTLIST**.
+   - Click **"Sample 3: Not Eligible (Arjun)"** $\to$ Click "Run Screening".
+     - Notice: Fit score **~32%**, Status: **Not Eligible**, Missing mandatory skills flagged in red (`Python`, `Machine Learning`, `SQL`).
+   - Enter recruiter notes and test the **Manual Override** action.
+
+5. **Technical Insights & Academic Viva Defense:**
+   - Navigate to the **Technical Insights** tab.
+   - **Architecture Diagram:** Explain the flow from React to FastAPI, SQLite, and the Python scoring engine.
+   - **Interactive B-Tree Demonstrator:** Select a candidate ID (e.g., ID 5) and click "Execute B-Tree Search". Show how the tree descends through internal nodes to leaf nodes in $O(\log_m N)$ time compared to an $O(N)$ linear scan. Note the academic disclaimer regarding SQLite's separate internal C B-tree.
+   - **Live SQL Playground:** Run sample SQL queries to demonstrate real database joins and filtering.
+   - **Mathematical Formulas:** Explain the ADSA weighted scoring formula and DMGT set intersection rules.
+
+---
+
+## 9. Current Limitations & Future Roadmap
+
+- **Optical Character Recognition (OCR):** Resumes submitted as scanned images (PNG/JPG) are not currently OCR-processed; only text-based PDFs and TXT files are parsed directly.
+- **Natural Language Parsing Scope:** Skill matching uses normalized vocabulary matching and token sets; integration of transformer-based embeddings (e.g., BERT/Sentence-Transformers) could capture non-standard synonyms.
+- **Email Notifications:** The prototype records interview scheduling in the database; automated SMTP email dispatch to candidates can be integrated in a production deployment.

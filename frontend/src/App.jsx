@@ -7,21 +7,29 @@ import { CandidatesPage } from './pages/CandidatesPage';
 import { ScreeningPage } from './pages/ScreeningPage';
 import { AnalyticsPage } from './pages/AnalyticsPage';
 import { SettingsPage } from './pages/SettingsPage';
+import { TechnicalInsightsPage } from './pages/TechnicalInsightsPage';
 import { CandidateProfileModal } from './components/CandidateProfileModal';
+import { AddCandidateModal } from './components/AddCandidateModal';
 import { ScoreBadge, EligibilityBadge } from './components/ScoreBadge';
 import { api } from './services/api';
-import { Sparkles, X, CheckCircle, ArrowRight, Award, ShieldAlert } from 'lucide-react';
+import { Sparkles, X, ArrowRight } from 'lucide-react';
 
 export default function App() {
   const [currentTab, setTab] = useState('dashboard');
   const [selectedCandidate, setSelectedCandidate] = useState(null);
   const [preselectedJobId, setPreselectedJobId] = useState(null);
   const [globalSearch, setGlobalSearch] = useState('');
+  const [isAddCandidateOpen, setIsAddCandidateOpen] = useState(false);
+  const [jobsList, setJobsList] = useState([]);
   
   // Demo Execution state
   const [demoLoading, setDemoLoading] = useState(false);
   const [demoResults, setDemoResults] = useState(null);
   const [showDemoModal, setShowDemoModal] = useState(false);
+
+  React.useEffect(() => {
+    api.getJobs().then(setJobsList).catch(() => {});
+  }, []);
 
   // Global Demo Screening Trigger
   const handleRunDemo = async () => {
@@ -97,6 +105,7 @@ export default function App() {
               onSelectCandidate={(cand) => setSelectedCandidate(cand)}
               onRunDemo={handleRunDemo}
               demoLoading={demoLoading}
+              onOpenAddCandidate={() => setIsAddCandidateOpen(true)}
             />
           )}
 
@@ -128,6 +137,12 @@ export default function App() {
             />
           )}
 
+          {currentTab === 'technical' && (
+            <TechnicalInsightsPage
+              onSelectCandidate={(cand) => setSelectedCandidate(cand)}
+            />
+          )}
+
           {currentTab === 'analytics' && <AnalyticsPage />}
 
           {currentTab === 'settings' && (
@@ -138,6 +153,17 @@ export default function App() {
           )}
         </main>
       </div>
+
+      {/* Add Candidate Modal */}
+      <AddCandidateModal
+        isOpen={isAddCandidateOpen}
+        onClose={() => setIsAddCandidateOpen(false)}
+        onCandidateAdded={() => {
+          setIsAddCandidateOpen(false);
+          setTab('candidates');
+        }}
+        jobs={jobsList}
+      />
 
       {/* Candidate Profile Detailed Modal */}
       {selectedCandidate && (

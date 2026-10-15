@@ -11,6 +11,9 @@ class JobBase(BaseModel):
     preferred_skills: Optional[str] = Field("", example="Pandas, NumPy, Git, React")
     minimum_experience: float = Field(0.0, ge=0.0, example=0.0)
     education_requirement: str = Field("BTech / BE / MCA", example="BTech / BE / MCA")
+    skill_weight: Optional[float] = Field(0.50, ge=0.0, le=1.0)
+    experience_weight: Optional[float] = Field(0.30, ge=0.0, le=1.0)
+    education_weight: Optional[float] = Field(0.20, ge=0.0, le=1.0)
     status: Optional[str] = Field("Active", example="Active")
 
 class JobCreate(JobBase):
@@ -24,6 +27,9 @@ class JobUpdate(BaseModel):
     preferred_skills: Optional[str] = None
     minimum_experience: Optional[float] = None
     education_requirement: Optional[str] = None
+    skill_weight: Optional[float] = None
+    experience_weight: Optional[float] = None
+    education_weight: Optional[float] = None
     status: Optional[str] = None
 
 class JobResponse(JobBase):
@@ -48,6 +54,15 @@ class CandidateBase(BaseModel):
 class CandidateCreate(CandidateBase):
     pass
 
+class CandidateUpdate(BaseModel):
+    name: Optional[str] = None
+    email: Optional[str] = None
+    phone: Optional[str] = None
+    education: Optional[str] = None
+    experience: Optional[float] = None
+    skills: Optional[str] = None
+    resume_text: Optional[str] = None
+
 class CandidateResponse(CandidateBase):
     candidate_id: int
     created_at: datetime
@@ -61,8 +76,9 @@ class ApplicationCreate(BaseModel):
     job_id: int
 
 class ApplicationStatusUpdate(BaseModel):
-    status: str = Field(..., example="Shortlisted") # "Shortlisted", "Rejected", "Interview", "Screened"
-    notes: Optional[str] = None
+    status: str = Field(..., example="Shortlisted") # "Shortlisted", "Rejected", "Interview", "Screened", "Review"
+    notes: Optional[str] = ""
+    override_reason: Optional[str] = ""
 
 class ApplicationResponse(BaseModel):
     application_id: int
@@ -78,6 +94,8 @@ class ApplicationResponse(BaseModel):
     status: str
     missing_skills: Optional[str] = ""
     reason: Optional[str] = ""
+    recruiter_notes: Optional[str] = ""
+    override_reason: Optional[str] = ""
     applied_at: datetime
     
     # Embedded nested data for rich UI

@@ -1,23 +1,36 @@
 import React from 'react';
 import { Search, Bell, Sparkles, UserCheck } from 'lucide-react';
 
+import { api } from '../services/api';
+
 export function Header({ currentTab, onRunDemo, demoLoading, globalSearch, setGlobalSearch }) {
   const titles = {
     dashboard: 'Recruiter Dashboard',
     jobs: 'Job Openings & Requirements',
-    candidates: 'Candidate Pool & AI Ranking',
-    screening: 'Interactive Resume Screening',
+    candidates: 'Candidate Pool & Management',
+    screening: 'Deterministic Smart Screening',
+    technical: 'Technical Insights & CS Architecture',
     analytics: 'Recruitment Analytics & Insights',
     settings: 'Engine Weights & System Rules',
   };
+
+  const isOnline = api.isOnline();
 
   return (
     <header className="h-16 bg-white border-b border-slate-200 px-6 flex items-center justify-between sticky top-0 z-30">
       {/* Title & Context */}
       <div>
-        <h2 className="text-lg font-bold text-slate-800 leading-tight">
-          {titles[currentTab] || 'HR Recruitment System'}
-        </h2>
+        <div className="flex items-center gap-2.5">
+          <h2 className="text-lg font-bold text-slate-800 leading-tight">
+            {titles[currentTab] || 'HR Recruitment System'}
+          </h2>
+          <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold hidden sm:inline-flex items-center gap-1 ${
+            isOnline ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-700 border border-amber-200'
+          }`}>
+            <span className={`w-1.5 h-1.5 rounded-full ${isOnline ? 'bg-emerald-500' : 'bg-amber-500'}`}></span>
+            {isOnline ? 'FastAPI Connected' : 'Local Demo Mode'}
+          </span>
+        </div>
         <p className="text-[11px] text-slate-500 hidden sm:block">
           AI Candidate Filtering, ADSA Scoring & Recruiter Shortlisting
         </p>

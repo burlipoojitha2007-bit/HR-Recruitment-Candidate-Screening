@@ -32,19 +32,53 @@ def seed_database(db: Session, force_reset: bool = False):
             preferred_skills="Pandas, NumPy, Git",
             minimum_experience=0.0,
             education_requirement="BTech / BE / MCA",
+            skill_weight=0.50,
+            experience_weight=0.30,
+            education_weight=0.20,
             status="Active",
             created_at=datetime.datetime.utcnow() - datetime.timedelta(days=12)
         ),
         Job(
-            title="Python AI Developer",
+            title="Junior Python Developer",
             department="Engineering",
-            description="Looking for a Python AI developer with hands-on knowledge of machine learning, data processing, backend API development, and distributed pipelines.",
-            required_skills="Python, Machine Learning, SQL, FastAPI",
-            preferred_skills="Pandas, NumPy, Git, React, Docker",
+            description="Looking for a Junior Python developer with solid knowledge of Python programming, SQL databases, RESTful APIs, and distributed pipelines.",
+            required_skills="Python, SQL, FastAPI, Git",
+            preferred_skills="Pandas, Docker, Linux",
             minimum_experience=1.0,
-            education_requirement="BTech / BE / MCA",
+            education_requirement="BTech / BE / MCA / BCA",
+            skill_weight=0.50,
+            experience_weight=0.30,
+            education_weight=0.20,
             status="Active",
             created_at=datetime.datetime.utcnow() - datetime.timedelta(days=10)
+        ),
+        Job(
+            title="Frontend Developer",
+            department="UI/UX Engineering",
+            description="Craft pixel-perfect, accessible, and high-performance user interfaces using React, JavaScript, Tailwind, and modern CSS architecture.",
+            required_skills="React, JavaScript, HTML, CSS, Tailwind",
+            preferred_skills="TypeScript, Next.js, Figma, Git",
+            minimum_experience=1.0,
+            education_requirement="BTech / BE / BCA / MCA",
+            skill_weight=0.50,
+            experience_weight=0.30,
+            education_weight=0.20,
+            status="Active",
+            created_at=datetime.datetime.utcnow() - datetime.timedelta(days=8)
+        ),
+        Job(
+            title="Data Analyst",
+            department="Business Intelligence",
+            description="Analyze business operations data, build executive dashboards in PowerBI/Tableau, and extract actionable insights with SQL queries.",
+            required_skills="SQL, Excel, Data Analysis, Python",
+            preferred_skills="Tableau, Power BI, Statistics, Pandas",
+            minimum_experience=0.0,
+            education_requirement="BTech / BSc / Any Graduate",
+            skill_weight=0.50,
+            experience_weight=0.30,
+            education_weight=0.20,
+            status="Active",
+            created_at=datetime.datetime.utcnow() - datetime.timedelta(days=7)
         ),
         Job(
             title="Full Stack Web Developer",
@@ -54,8 +88,11 @@ def seed_database(db: Session, force_reset: bool = False):
             preferred_skills="TypeScript, Tailwind, Docker, Git",
             minimum_experience=2.0,
             education_requirement="BTech / BCA / MCA",
+            skill_weight=0.50,
+            experience_weight=0.30,
+            education_weight=0.20,
             status="Active",
-            created_at=datetime.datetime.utcnow() - datetime.timedelta(days=8)
+            created_at=datetime.datetime.utcnow() - datetime.timedelta(days=6)
         ),
         Job(
             title="Data Engineer",
@@ -65,8 +102,11 @@ def seed_database(db: Session, force_reset: bool = False):
             preferred_skills="Airflow, AWS, Docker, Kafka",
             minimum_experience=2.0,
             education_requirement="BTech / BE / MTech",
+            skill_weight=0.50,
+            experience_weight=0.30,
+            education_weight=0.20,
             status="Active",
-            created_at=datetime.datetime.utcnow() - datetime.timedelta(days=7)
+            created_at=datetime.datetime.utcnow() - datetime.timedelta(days=5)
         ),
         Job(
             title="Cloud DevOps Engineer",
@@ -76,17 +116,9 @@ def seed_database(db: Session, force_reset: bool = False):
             preferred_skills="Terraform, Python, Bash, Prometheus",
             minimum_experience=3.0,
             education_requirement="BTech / Any Graduate",
-            status="Active",
-            created_at=datetime.datetime.utcnow() - datetime.timedelta(days=5)
-        ),
-        Job(
-            title="Frontend React Engineer",
-            department="UI/UX Engineering",
-            description="Craft pixel-perfect, accessible, and high-performance user interfaces using React, Next.js, and modern CSS architecture.",
-            required_skills="React, TypeScript, Tailwind, JavaScript, HTML, CSS",
-            preferred_skills="Next.js, Jest, Figma, Git",
-            minimum_experience=1.5,
-            education_requirement="BTech / BE / BCA / MCA",
+            skill_weight=0.50,
+            experience_weight=0.30,
+            education_weight=0.20,
             status="Active",
             created_at=datetime.datetime.utcnow() - datetime.timedelta(days=4)
         ),
@@ -98,19 +130,11 @@ def seed_database(db: Session, force_reset: bool = False):
             preferred_skills="Postman, Docker, Jenkins, SQL",
             minimum_experience=1.0,
             education_requirement="BTech / BE / BCA",
+            skill_weight=0.50,
+            experience_weight=0.30,
+            education_weight=0.20,
             status="Active",
             created_at=datetime.datetime.utcnow() - datetime.timedelta(days=3)
-        ),
-        Job(
-            title="Junior Data Analyst",
-            department="Business Intelligence",
-            description="Analyze business operations data, build executive dashboards in PowerBI/Tableau, and extract actionable insights with SQL.",
-            required_skills="SQL, Excel, Data Analysis, Python",
-            preferred_skills="Tableau, Power BI, Statistics, Pandas",
-            minimum_experience=0.0,
-            education_requirement="BTech / BSc / Any Graduate",
-            status="Active",
-            created_at=datetime.datetime.utcnow() - datetime.timedelta(days=2)
         )
     ]
 
@@ -305,11 +329,11 @@ def seed_database(db: Session, force_reset: bool = False):
         ("arjun.mehta@example.com", "AI/ML Intern", "Rejected"),
         ("divya.menon@example.com", "AI/ML Intern", "Interview"),
         
-        # Python AI Developer applicants
-        ("rahul.sharma@example.com", "Python AI Developer", "Shortlisted"),
-        ("ananya.iyer@example.com", "Python AI Developer", "Interview"),
-        ("siddharth.rao@example.com", "Python AI Developer", "Interview"),
-        ("priya.nair@example.com", "Python AI Developer", "Review"),
+        # Junior Python Developer applicants
+        ("rahul.sharma@example.com", "Junior Python Developer", "Shortlisted"),
+        ("ananya.iyer@example.com", "Junior Python Developer", "Interview"),
+        ("siddharth.rao@example.com", "Junior Python Developer", "Interview"),
+        ("priya.nair@example.com", "Junior Python Developer", "Review"),
         
         # Full Stack Web Developer applicants
         ("rohan.deshmukh@example.com", "Full Stack Web Developer", "Shortlisted"),
@@ -326,19 +350,19 @@ def seed_database(db: Session, force_reset: bool = False):
         ("pooja.kulkarni@example.com", "Cloud DevOps Engineer", "Shortlisted"),
         ("ananya.iyer@example.com", "Cloud DevOps Engineer", "Review"),
         
-        # Frontend React Engineer applicants
-        ("aditya.reddy@example.com", "Frontend React Engineer", "Shortlisted"),
-        ("rohan.deshmukh@example.com", "Frontend React Engineer", "Screened"),
-        ("kiran.verma@example.com", "Frontend React Engineer", "Rejected"),
+        # Frontend Developer applicants
+        ("aditya.reddy@example.com", "Frontend Developer", "Shortlisted"),
+        ("rohan.deshmukh@example.com", "Frontend Developer", "Screened"),
+        ("kiran.verma@example.com", "Frontend Developer", "Rejected"),
         
         # QA Automation Engineer applicants
         ("meera.joshi@example.com", "QA Automation Engineer", "Shortlisted"),
         ("karthik.sub@example.com", "QA Automation Engineer", "Review"),
         
-        # Junior Data Analyst applicants
-        ("tanmay.bhatt@example.com", "Junior Data Analyst", "Shortlisted"),
-        ("sneha.patil@example.com", "Junior Data Analyst", "Screened"),
-        ("arjun.mehta@example.com", "Junior Data Analyst", "Rejected")
+        # Data Analyst applicants
+        ("tanmay.bhatt@example.com", "Data Analyst", "Shortlisted"),
+        ("sneha.patil@example.com", "Data Analyst", "Screened"),
+        ("arjun.mehta@example.com", "Data Analyst", "Rejected")
     ]
 
     for email, job_title, initial_status in application_pairings:
@@ -364,6 +388,16 @@ def seed_database(db: Session, force_reset: bool = False):
         if result["eligibility"] == "Not Eligible" and status not in ["Rejected"]:
             status = "Rejected"
 
+        recruiter_note = (
+            "Screened via deterministic scoring matrix. Recommended for technical shortlisting."
+            if result["eligibility"] == "Eligible"
+            else (
+                f"Requires manual review: {result['reason']}"
+                if result["eligibility"] == "Review"
+                else "Disqualified during baseline eligibility check."
+            )
+        )
+
         app = Application(
             candidate_id=cand.candidate_id,
             job_id=job.job_id,
@@ -377,6 +411,8 @@ def seed_database(db: Session, force_reset: bool = False):
             status=status,
             missing_skills=", ".join(result["missing_skills"]),
             reason=result["reason"],
+            recruiter_notes=recruiter_note,
+            override_reason="",
             applied_at=datetime.datetime.utcnow() - datetime.timedelta(hours=hash(email + job_title) % 120)
         )
         db.add(app)

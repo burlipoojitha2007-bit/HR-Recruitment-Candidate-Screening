@@ -102,6 +102,8 @@ def get_applications(
             "status": app.status,
             "missing_skills": [s.strip() for s in app.missing_skills.split(",")] if app.missing_skills else [],
             "reason": app.reason,
+            "recruiter_notes": app.recruiter_notes or "",
+            "override_reason": app.override_reason or "",
             "applied_at": app.applied_at
         })
 
@@ -146,6 +148,8 @@ def get_application_details(application_id: int, db: Session = Depends(get_db)):
         "status": app.status,
         "missing_skills": [s.strip() for s in app.missing_skills.split(",")] if app.missing_skills else [],
         "reason": app.reason,
+        "recruiter_notes": app.recruiter_notes or "",
+        "override_reason": app.override_reason or "",
         "applied_at": app.applied_at
     }
 
@@ -182,5 +186,30 @@ def update_application_status(application_id: int, status_in: ApplicationStatusU
     if not app:
         raise HTTPException(status_code=404, detail="Application not found")
     app.status = status_in.status
+    if status_in.notes is not None:
+        app.recruiter_notes = status_in.notes
+    if status_in.override_reason:
+        app.override_reason = status_in.override_reason
     db.commit()
-    return {"message": f"Application status updated to {status_in.status}", "status": app.status}
+    return {
+        "message": f"Application status updated to {status_in.status}",
+        "status": app.status,
+        "recruiter_notes": app.recruiter_notes,
+        "override_reason": app.override_reason
+    }
+
+@router.post("/{application_id}/notes")
+def update_application_notes(application_id: int, notes_in: dict, db: Session = Depends(get_db)):
+    app = db.query(Application).filter(Application.application_id == application_id).first()
+    if not app:
+        raise HTTPException(status_code=404, detail="Application not found")
+    if "notes" in notes_in:
+        app.recruiter_notes = str(notes_in["notes"])
+    if "override_reason" in notes_in:
+        app.override_reason = str(notes_in["override_reason"])
+    db.commit()
+    return {
+        "message": "Recruiter notes successfully updated",
+        "recruiter_notes": app.recruiter_notes,
+        "override_reason": app.override_reason
+    }

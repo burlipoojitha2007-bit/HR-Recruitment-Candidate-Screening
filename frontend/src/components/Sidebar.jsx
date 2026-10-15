@@ -10,6 +10,7 @@ export function Sidebar({ currentTab, setTab, onRunDemo, onResetDb, demoLoading 
     { id: 'jobs', label: 'Job Openings', icon: Briefcase },
     { id: 'candidates', label: 'Candidates & Ranking', icon: Users },
     { id: 'screening', label: 'Resume Screener', icon: FileSearch },
+    { id: 'technical', label: 'Technical Insights', icon: Database },
     { id: 'analytics', label: 'Recruitment Analytics', icon: BarChart3 },
     { id: 'settings', label: 'System & Engine Rules', icon: Settings },
   ];

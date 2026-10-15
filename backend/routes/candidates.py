@@ -5,7 +5,7 @@ from sqlalchemy import desc, asc, or_
 
 from database import get_db
 from models import Candidate, Application, Job
-from schemas import CandidateCreate, CandidateResponse
+from schemas import CandidateCreate, CandidateUpdate, CandidateResponse
 
 router = APIRouter(prefix="/candidates", tags=["Candidates"])
 
@@ -105,3 +105,45 @@ def create_candidate(candidate_in: CandidateCreate, db: Session = Depends(get_db
     db.commit()
     db.refresh(new_candidate)
     return new_candidate
+
+@router.put("/{candidate_id}", response_model=CandidateResponse)
+def update_candidate(candidate_id: int, candidate_in: CandidateUpdate, db: Session = Depends(get_db)):
+    candidate = db.query(Candidate).filter(Candidate.candidate_id == candidate_id).first()
+    if not candidate:
+        raise HTTPException(status_code=404, detail="Candidate not found")
+
+    if candidate_in.name is not None:
+        candidate.name = candidate_in.name.strip()
+    if candidate_in.email is not None:
+        # Check uniqueness if changed
+        if candidate_in.email != candidate.email:
+            existing = db.query(Candidate).filter(Candidate.email == candidate_in.email).first()
+            if existing:
+                raise HTTPException(status_code=400, detail="Another candidate with this email exists")
+            candidate.email = candidate_in.email.strip()
+    if candidate_in.phone is not None:
+        candidate.phone = candidate_in.phone.strip()
+    if candidate_in.education is not None:
+        candidate.education = candidate_in.education.strip()
+    if candidate_in.experience is not None:
+        candidate.experience = candidate_in.experience
+    if candidate_in.skills is not None:
+        candidate.skills = candidate_in.skills.strip()
+    if candidate_in.resume_text is not None:
+        candidate.resume_text = candidate_in.resume_text
+
+    db.commit()
+    db.refresh(candidate)
+    return candidate
+
+@router.delete("/{candidate_id}")
+def delete_candidate(candidate_id: int, db: Session = Depends(get_db)):
+    candidate = db.query(Candidate).filter(Candidate.candidate_id == candidate_id).first()
+    if not candidate:
+        raise HTTPException(status_code=404, detail="Candidate not found")
+
+    # Cascaded delete of applications
+    db.delete(candidate)
+    db.commit()
+    return {"message": f"Candidate #{candidate_id} and associated applications successfully removed", "success": True}
+

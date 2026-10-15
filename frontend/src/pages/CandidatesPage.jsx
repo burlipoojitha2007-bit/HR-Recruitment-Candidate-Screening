@@ -1,10 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
-  Search, Filter, ArrowUpDown, ChevronDown, Check, Ban, 
-  Calendar, Eye, RefreshCw, Sparkles, Download, UserPlus
+  Search, ArrowUpDown, Check, Ban, 
+  Eye, Sparkles, UserPlus, Edit3, Trash2,
+  ChevronLeft, ChevronRight
 } from 'lucide-react';
 import { api } from '../services/api';
 import { ScoreBadge, EligibilityBadge, StatusBadge } from '../components/ScoreBadge';
+import { AddCandidateModal } from '../components/AddCandidateModal';
+import { EditCandidateModal } from '../components/EditCandidateModal';
 
 export function CandidatesPage({ initialJobId, onSelectCandidate, onNavigateToScreening }) {
   const [applications, setApplications] = useState([]);
@@ -19,6 +22,14 @@ export function CandidatesPage({ initialJobId, onSelectCandidate, onNavigateToSc
   const [minScoreFilter, setMinScoreFilter] = useState('');
   const [sortBy, setSortBy] = useState('fit_score');
   const [order, setOrder] = useState('desc');
+
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(8);
+
+  // Modals State
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [candidateToEdit, setCandidateToEdit] = useState(null);
 
   const loadFilterData = async () => {
     try {
@@ -43,6 +54,8 @@ export function CandidatesPage({ initialJobId, onSelectCandidate, onNavigateToSc
       };
       const data = await api.getApplications(filters);
       setApplications(data);
+      // Reset to page 1 on filter changes if current page exceeds bounds
+      setCurrentPage(1);
     } catch (err) {
       console.error('Failed to load applications:', err);
     } finally {
@@ -92,6 +105,17 @@ export function CandidatesPage({ initialJobId, onSelectCandidate, onNavigateToSc
     }
   };
 
+  const handleDeleteCandidate = async (candidateId, name) => {
+    if (window.confirm(`Are you sure you want to delete candidate "${name}" (ID #${candidateId})? This action cannot be undone.`)) {
+      try {
+        await api.deleteCandidate(candidateId);
+        loadApplications();
+      } catch (err) {
+        alert(err.message || 'Failed to delete candidate');
+      }
+    }
+  };
+
   const clearFilters = () => {
     setSearch('');
     setSelectedJob('');
@@ -100,7 +124,16 @@ export function CandidatesPage({ initialJobId, onSelectCandidate, onNavigateToSc
     setMinScoreFilter('');
     setSortBy('fit_score');
     setOrder('desc');
+    setCurrentPage(1);
   };
+
+  // Pagination calculation
+  const totalItems = applications.length;
+  const totalPages = Math.ceil(totalItems / pageSize) || 1;
+  const paginatedApplications = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return applications.slice(start, start + pageSize);
+  }, [applications, currentPage, pageSize]);
 
   return (
     <div className="p-6 max-w-7xl mx-auto space-y-6 animate-fade-in">
@@ -108,16 +141,24 @@ export function CandidatesPage({ initialJobId, onSelectCandidate, onNavigateToSc
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl font-bold text-slate-900">Candidate Pool & AI Ranking</h2>
+          <h2 className="text-xl font-bold text-slate-900">Candidate Pool & Management</h2>
           <p className="text-xs text-slate-500">
-            Automated ranking and multi-criteria evaluation powered by ADSA indexed scoring algorithms
+            Search, filter, edit, and rank candidate profiles with deterministic ADSA weighted scoring
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2.5">
+          <button
+            onClick={() => setIsAddModalOpen(true)}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold bg-white text-slate-800 border border-slate-300 hover:bg-slate-50 shadow-xs transition-all cursor-pointer"
+          >
+            <UserPlus className="w-3.5 h-3.5 text-indigo-600" />
+            Add Candidate
+          </button>
+
           <button
             onClick={onNavigateToScreening}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm transition-all"
+            className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs transition-all cursor-pointer"
           >
             <Sparkles className="w-3.5 h-3.5" />
             Screen New Candidate
@@ -166,7 +207,7 @@ export function CandidatesPage({ initialJobId, onSelectCandidate, onNavigateToSc
             >
               <option value="All">All Eligibility Tiers</option>
               <option value="Eligible">Eligible (&gt;= 75%)</option>
-              <option value="Review">Review (50 - 74%)</option>
+              <option value="Review">Needs Review (50 - 74%)</option>
               <option value="Not Eligible">Not Eligible (&lt; 50%)</option>
             </select>
           </div>
@@ -192,13 +233,13 @@ export function CandidatesPage({ initialJobId, onSelectCandidate, onNavigateToSc
         {/* Secondary Filter Row: Min Score & Sorting */}
         <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-100 text-xs">
           
-          <div className="flex items-center gap-3">
-            <span className="font-semibold text-slate-500">Min Score:</span>
+          <div className="flex items-center gap-2">
+            <span className="font-semibold text-slate-500 text-[11px]">Min Score:</span>
             {['', '50', '75', '85'].map((threshold) => (
               <button
                 key={threshold}
                 onClick={() => setMinScoreFilter(threshold)}
-                className={`px-2.5 py-1 rounded-md text-xs transition-colors ${
+                className={`px-2.5 py-0.5 rounded-md text-xs transition-colors ${
                   minScoreFilter === threshold
                     ? 'bg-indigo-600 text-white font-bold'
                     : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
@@ -212,7 +253,7 @@ export function CandidatesPage({ initialJobId, onSelectCandidate, onNavigateToSc
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-1.5 text-slate-600">
               <ArrowUpDown className="w-3.5 h-3.5 text-slate-400" />
-              <span className="font-semibold">Sort By:</span>
+              <span className="font-semibold text-[11px]">Sort By:</span>
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
@@ -251,36 +292,41 @@ export function CandidatesPage({ initialJobId, onSelectCandidate, onNavigateToSc
           <table className="w-full text-left text-xs">
             <thead className="bg-slate-50/80 border-b border-slate-200/80 text-slate-500 font-semibold uppercase text-[10px] tracking-wider">
               <tr>
-                <th className="py-3.5 px-4 w-14">Rank</th>
+                <th className="py-3.5 px-3 w-12 text-center">Rank</th>
+                <th className="py-3.5 px-3">Candidate ID</th>
                 <th className="py-3.5 px-4">Candidate Profile</th>
                 <th className="py-3.5 px-4">Applied Job Opening</th>
                 <th className="py-3.5 px-4">Skills Verified</th>
-                <th className="py-3.5 px-4">AI Fit Score</th>
-                <th className="py-3.5 px-4">Eligibility</th>
-                <th className="py-3.5 px-4">Status</th>
+                <th className="py-3.5 px-3">Education & Exp</th>
+                <th className="py-3.5 px-3">AI Fit Score</th>
+                <th className="py-3.5 px-3">Eligibility</th>
+                <th className="py-3.5 px-3">Status</th>
                 <th className="py-3.5 px-4 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 font-normal">
               {loading ? (
                 <tr>
-                  <td colSpan={8} className="py-12 text-center text-slate-400">
-                    Calculating scores and ranks...
+                  <td colSpan={10} className="py-12 text-center text-slate-400">
+                    <div className="flex items-center justify-center gap-2">
+                      <div className="w-4 h-4 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+                      Calculating scores and ranks...
+                    </div>
                   </td>
                 </tr>
-              ) : applications.length === 0 ? (
+              ) : paginatedApplications.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="py-12 text-center text-slate-400">
+                  <td colSpan={10} className="py-12 text-center text-slate-400">
                     No candidates match the specified filter criteria.
                   </td>
                 </tr>
               ) : (
-                applications.map((app) => {
-                  const skills = app.skills.split(',').map(s => s.trim()).filter(Boolean);
+                paginatedApplications.map((app) => {
+                  const skills = (app.skills || '').split(',').map(s => s.trim()).filter(Boolean);
                   return (
                     <tr key={app.application_id} className="hover:bg-slate-50/90 transition-colors">
-                      {/* Rank Badge */}
-                      <td className="py-3 px-4">
+                      {/* Priority Rank */}
+                      <td className="py-3 px-3 text-center">
                         <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold ${
                           app.rank === 1 ? 'bg-amber-100 text-amber-800 border border-amber-300' :
                           app.rank === 2 ? 'bg-slate-200 text-slate-800' :
@@ -291,13 +337,18 @@ export function CandidatesPage({ initialJobId, onSelectCandidate, onNavigateToSc
                         </span>
                       </td>
 
+                      {/* Candidate ID */}
+                      <td className="py-3 px-3 font-mono text-[11px] text-slate-500 font-semibold">
+                        CAND-{String(app.candidate_id).padStart(3, '0')}
+                      </td>
+
                       {/* Candidate Name & Contact */}
                       <td className="py-3 px-4">
                         <div className="font-bold text-slate-900 text-sm">{app.candidate_name}</div>
                         <div className="text-[11px] text-slate-500">{app.candidate_email}</div>
-                        <div className="text-[10px] text-slate-400 mt-0.5">
-                          {app.education} • {app.experience} yr{app.experience === 1 ? '' : 's'} exp
-                        </div>
+                        {app.candidate_phone && (
+                          <div className="text-[10px] text-slate-400">{app.candidate_phone}</div>
+                        )}
                       </td>
 
                       {/* Applied Job */}
@@ -322,24 +373,31 @@ export function CandidatesPage({ initialJobId, onSelectCandidate, onNavigateToSc
                         </div>
                       </td>
 
+                      {/* Education & Experience */}
+                      <td className="py-3 px-3">
+                        <div className="font-medium text-slate-700 text-[11px]">{app.education}</div>
+                        <div className="text-[10px] text-slate-400">{app.experience} yr{app.experience === 1 ? '' : 's'} exp</div>
+                      </td>
+
                       {/* Fit Score */}
-                      <td className="py-3 px-4">
+                      <td className="py-3 px-3">
                         <ScoreBadge score={app.fit_score} />
                       </td>
 
                       {/* Eligibility */}
-                      <td className="py-3 px-4">
+                      <td className="py-3 px-3">
                         <EligibilityBadge eligibility={app.eligibility} />
                       </td>
 
                       {/* Status */}
-                      <td className="py-3 px-4">
+                      <td className="py-3 px-3">
                         <StatusBadge status={app.status} />
                       </td>
 
                       {/* Actions */}
                       <td className="py-3 px-4 text-right">
                         <div className="flex items-center justify-end gap-1.5">
+                          {/* View details */}
                           <button
                             title="View Full Profile & Score Breakdown"
                             onClick={() => onSelectCandidate(app)}
@@ -347,7 +405,26 @@ export function CandidatesPage({ initialJobId, onSelectCandidate, onNavigateToSc
                           >
                             <Eye className="w-3.5 h-3.5" />
                           </button>
+
+                          {/* Edit candidate */}
+                          <button
+                            title="Edit Candidate Information"
+                            onClick={() => setCandidateToEdit(app)}
+                            className="p-1.5 rounded-lg text-slate-600 bg-slate-100 hover:bg-slate-200 border border-slate-200 transition-colors"
+                          >
+                            <Edit3 className="w-3.5 h-3.5" />
+                          </button>
+
+                          {/* Delete candidate */}
+                          <button
+                            title="Delete Candidate"
+                            onClick={() => handleDeleteCandidate(app.candidate_id, app.candidate_name)}
+                            className="p-1.5 rounded-lg text-rose-600 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition-colors"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
                           
+                          {/* Shortlist */}
                           {app.status !== 'Shortlisted' && (
                             <button
                               title="Shortlist Candidate"
@@ -358,6 +435,7 @@ export function CandidatesPage({ initialJobId, onSelectCandidate, onNavigateToSc
                             </button>
                           )}
 
+                          {/* Reject */}
                           {app.status !== 'Rejected' && (
                             <button
                               title="Reject Application"
@@ -365,16 +443,6 @@ export function CandidatesPage({ initialJobId, onSelectCandidate, onNavigateToSc
                               className="p-1.5 rounded-lg text-rose-600 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition-colors"
                             >
                               <Ban className="w-3.5 h-3.5" />
-                            </button>
-                          )}
-
-                          {app.status !== 'Interview' && (
-                            <button
-                              title="Schedule Interview"
-                              onClick={() => handleInterview(app.application_id)}
-                              className="p-1.5 rounded-lg text-indigo-600 bg-white hover:bg-indigo-50 border border-slate-200 transition-colors"
-                            >
-                              <Calendar className="w-3.5 h-3.5" />
                             </button>
                           )}
                         </div>
@@ -387,12 +455,90 @@ export function CandidatesPage({ initialJobId, onSelectCandidate, onNavigateToSc
           </table>
         </div>
 
-        {/* Footer info bar */}
-        <div className="p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
-          <span>Showing {applications.length} candidate applications</span>
-          <span className="font-mono text-[11px] text-slate-400">Database Engine: SQLite + ADSA Composite Index</span>
+        {/* Pagination & Footer bar */}
+        <div className="p-4 bg-slate-50 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
+          <div className="flex items-center gap-3">
+            <span>
+              Showing {totalItems > 0 ? (currentPage - 1) * pageSize + 1 : 0} to{' '}
+              {Math.min(currentPage * pageSize, totalItems)} of {totalItems} candidates
+            </span>
+
+            <div className="flex items-center gap-1.5">
+              <span className="text-[11px] text-slate-400">Rows per page:</span>
+              <select
+                value={pageSize}
+                onChange={(e) => {
+                  setPageSize(Number(e.target.value));
+                  setCurrentPage(1);
+                }}
+                className="px-2 py-0.5 rounded border border-slate-200 bg-white text-xs"
+              >
+                <option value={5}>5</option>
+                <option value={8}>8</option>
+                <option value={15}>15</option>
+                <option value={25}>25</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Pagination Navigation */}
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              className="p-1.5 rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+
+            {Array.from({ length: totalPages }, (_, idx) => idx + 1).map((page) => (
+              <button
+                key={page}
+                onClick={() => setCurrentPage(page)}
+                className={`w-7 h-7 rounded-lg text-xs font-semibold transition-colors ${
+                  currentPage === page
+                    ? 'bg-indigo-600 text-white'
+                    : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'
+                }`}
+              >
+                {page}
+              </button>
+            ))}
+
+            <button
+              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+              className="p-1.5 rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
         </div>
       </div>
+
+      {/* Add Candidate Modal */}
+      <AddCandidateModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        onCandidateAdded={() => {
+          loadApplications();
+          loadFilterData();
+        }}
+        jobs={jobs}
+      />
+
+      {/* Edit Candidate Modal */}
+      {candidateToEdit && (
+        <EditCandidateModal
+          isOpen={!!candidateToEdit}
+          onClose={() => setCandidateToEdit(null)}
+          candidate={candidateToEdit}
+          onCandidateUpdated={() => {
+            loadApplications();
+            setCandidateToEdit(null);
+          }}
+        />
+      )}
 
     </div>
   );

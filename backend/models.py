@@ -14,6 +14,9 @@ class Job(Base):
     preferred_skills = Column(Text, default="")         # Comma-separated or JSON list
     minimum_experience = Column(Float, default=0.0)     # In years
     education_requirement = Column(String(150), default="BTech / BE / MCA / Any Graduate")
+    skill_weight = Column(Float, default=0.50)          # 50% Skill Match default
+    experience_weight = Column(Float, default=0.30)     # 30% Experience Match default
+    education_weight = Column(Float, default=0.20)      # 20% Education Match default
     status = Column(String(50), default="Active", index=True) # "Active", "Draft", "Closed"
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
 
@@ -56,6 +59,8 @@ class Application(Base):
     status = Column(String(50), default="Screened", index=True)     # "Screened", "Shortlisted", "Rejected", "Interview"
     missing_skills = Column(Text, default="")                       # Comma-separated or JSON list
     reason = Column(Text, default="")                               # Rejection/Eligibility explanation
+    recruiter_notes = Column(Text, default="")                     # Persistent notes from recruiter
+    override_reason = Column(Text, default="")                     # Recorded justification for manual overrides
     applied_at = Column(DateTime, default=datetime.datetime.utcnow, index=True)
 
     # Relationships

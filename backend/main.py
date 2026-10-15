@@ -332,6 +332,160 @@ def reset_demo_database(db: Session = Depends(get_db)):
     seed_database(db, force_reset=True)
     return {"message": "Database successfully reset and re-seeded with 8 jobs and 16 candidates."}
 
+# ==================== B-TREE CANDIDATE INDEXING DEMO ====================
+from btree_index import CandidateBTree
+
+@app.get("/api/btree/index")
+def get_btree_index(db: Session = Depends(get_db)):
+    """
+    Builds an in-memory B-Tree index (Order m=3) on Candidate IDs and returns its hierarchical node structure.
+    Academic demonstration for ADSA viva.
+    """
+    candidates = db.query(Candidate).order_by(Candidate.candidate_id).all()
+    btree = CandidateBTree(order=3)
+    for c in candidates:
+        btree.insert(c.candidate_id, {
+            "candidate_id": c.candidate_id,
+            "name": c.name,
+            "education": c.education,
+            "experience": c.experience,
+            "skills": c.skills
+        })
+    return {
+        "success": True,
+        "order": btree.order,
+        "total_indexed": len(candidates),
+        "tree": btree.get_tree_structure(),
+        "disclaimer": "Educational demonstration authored by project team. SQLite uses separate native C B-Tree."
+    }
+
+@app.post("/api/btree/search")
+def search_btree_index(payload: dict, db: Session = Depends(get_db)):
+    """
+    Executes a key search on the B-Tree index, recording comparisons and node traversals.
+    Compares against a naive sequential scan.
+    """
+    candidate_id = int(payload.get("candidate_id", 1))
+    candidates = db.query(Candidate).order_by(Candidate.candidate_id).all()
+    btree = CandidateBTree(order=3)
+    for c in candidates:
+        btree.insert(c.candidate_id, {
+            "candidate_id": c.candidate_id,
+            "name": c.name,
+            "education": c.education,
+            "experience": c.experience,
+            "skills": c.skills
+        })
+
+    result = btree.search_with_trace(candidate_id, len(candidates))
+    return result
+
+# ==================== SKILLS DISTRIBUTION FOR RECHARTS ====================
+@app.get("/api/skills/distribution")
+def get_skills_distribution(db: Session = Depends(get_db)):
+    """
+    Aggregates candidate skill occurrences for the Recharts Skills Distribution Chart.
+    """
+    candidates = db.query(Candidate).all()
+    skill_counts = {}
+    for cand in candidates:
+        if cand.skills:
+            for s in cand.skills.split(","):
+                clean = s.strip()
+                if clean:
+                    skill_counts[clean] = skill_counts.get(clean, 0) + 1
+
+    # Sort descending
+    sorted_skills = sorted(skill_counts.items(), key=lambda x: x[1], reverse=True)[:10]
+    return [
+        {"skill": k, "count": v}
+        for k, v in sorted_skills
+    ]
+
+# ==================== CONSOLIDATED DASHBOARD API ====================
+@app.get("/api/dashboard")
+def get_dashboard_summary(db: Session = Depends(get_db)):
+    """
+    Single aggregated dashboard API endpoint returning all required statistics:
+    - total_candidates, eligible, shortlisted, review_needed, average fit score
+    - candidate pipeline
+    - top skills
+    - recent activity
+    """
+    total_candidates = db.query(Candidate).count()
+    total_jobs = db.query(Job).count()
+    total_apps = db.query(Application).count()
+
+    eligible_count = db.query(Application).filter(Application.eligibility == "Eligible").count()
+    review_count = db.query(Application).filter(Application.eligibility == "Review").count()
+    not_eligible_count = db.query(Application).filter(Application.eligibility == "Not Eligible").count()
+
+    shortlisted_count = db.query(Application).filter(Application.status == "Shortlisted").count()
+    interview_count = db.query(Application).filter(Application.status == "Interview").count()
+    rejected_count = db.query(Application).filter(Application.status == "Rejected").count()
+    screened_count = db.query(Application).filter(Application.status == "Screened").count()
+
+    from sqlalchemy import func
+    avg_score = db.query(func.avg(Application.fit_score)).scalar() or 0.0
+
+    # Pipeline stages
+    pipeline = [
+        {"stage": "Applied", "count": total_candidates, "fill": "#6366f1"},
+        {"stage": "Screened", "count": screened_count + shortlisted_count + interview_count + rejected_count, "fill": "#3b82f6"},
+        {"stage": "Eligible", "count": eligible_count, "fill": "#10b981"},
+        {"stage": "Review Needed", "count": review_count, "fill": "#f59e0b"},
+        {"stage": "Shortlisted", "count": shortlisted_count, "fill": "#8b5cf6"},
+        {"stage": "Interview", "count": interview_count, "fill": "#06b6d4"}
+    ]
+
+    # Skills distribution
+    skill_counts = {}
+    for cand in db.query(Candidate).all():
+        if cand.skills:
+            for s in cand.skills.split(","):
+                clean = s.strip()
+                if clean:
+                    skill_counts[clean] = skill_counts.get(clean, 0) + 1
+    top_skills = [
+        {"skill": k, "count": v}
+        for k, v in sorted(skill_counts.items(), key=lambda x: x[1], reverse=True)[:8]
+    ]
+
+    # Recent activity
+    recent = db.query(Application, Candidate, Job).join(
+        Candidate, Application.candidate_id == Candidate.candidate_id
+    ).join(
+        Job, Application.job_id == Job.job_id
+    ).order_by(Application.applied_at.desc()).limit(6).all()
+
+    recent_activity = [
+        {
+            "application_id": app.application_id,
+            "candidate_name": cand.name,
+            "job_title": job.title,
+            "fit_score": app.fit_score,
+            "eligibility": app.eligibility,
+            "status": app.status,
+            "applied_at": app.applied_at
+        }
+        for app, cand, job in recent
+    ]
+
+    return {
+        "total_candidates": total_candidates,
+        "total_jobs": total_jobs,
+        "total_applications": total_apps,
+        "eligible_candidates": eligible_count,
+        "shortlisted_candidates": shortlisted_count,
+        "review_needed_candidates": review_count,
+        "not_eligible_candidates": not_eligible_count,
+        "average_fit_score": round(float(avg_score), 1),
+        "pipeline": pipeline,
+        "top_skills": top_skills,
+        "recent_activity": recent_activity
+    }
+
+
 # ==================== STATIC FILES & PRODUCTION SPA ====================
 FRONTEND_DIST = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "frontend", "dist")
 if os.path.exists(FRONTEND_DIST):
